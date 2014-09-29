@@ -1,6 +1,6 @@
 /*
  *
- * author name(s), date, and other info here
+ * DAN MILLER ---- submitted by myself
  *
  */
 
@@ -10,7 +10,11 @@
 #include <string.h>
 #include <errno.h>
 
+#include <sys/time.h>
+#include <sys/resource.h>
+
 #include "list.h"
+
 
 void process_data(FILE *input_file) {
     // !! your code should start here.  the input_file parameter
@@ -19,14 +23,126 @@ void process_data(FILE *input_file) {
     // built-in function
 
 
+    	struct node *current = malloc(sizeof(struct node*));
+	current = current->next;
+    
+    char filestream[2000000];
 
+    if (input_file == stdin) { //user input
+	printf("Input a list of numbers \n");
+	while(fgets(filestream, 2000000, stdin)!= NULL) {
+		filestream[strlen(filestream)-1] = '\0';
 
+		char *token = strtok(filestream, " \t\n");
+    		if(token!=NULL) {
+			int match = 0; //does # of chars in input match # of valid int digits?
+			for(int i=0; i<strlen(token); i++) { //checks validity of each character of the input
+				if(i==0 && (isdigit(token[i]) || token[i]=='-')) {
+					match++;
+				}
+				else if(isdigit(token[i])) {
+					match++;
+				}
+			}
+			if (match == strlen(token)) {
+				int i = atoi(token);
+				list_append(i, &current);
+			}
+    		}
+    
+    		while (token!=NULL) {
+			token = strtok(NULL," \t\n");
+			if (token!=NULL) {
+				int match = 0; //does # of chars in input match # of valid int digits?
+				for(int i=0; i<strlen(token); i++) { //checks validity of each character of the input
+					if(i==0 && (isdigit(token[i]) || token[i]=='-')) {
+						match++;
+					}
+					else if(isdigit(token[i])) {
+						match++;
+					}
+				}
+				if (match == strlen(token)) {
+					int i = atoi(token);
+				        list_append(i, &current);
+				}
+			}
+    		}
+	}
+
+	fflush(stdout);
+    }
+
+    else { //file input
+        while(fgets(filestream, 2000000, input_file)!=NULL) {
+		filestream[strlen(filestream)-1] = '\0';	
+	
+		char *token = strtok(filestream," \t\n");
+    		if(token!=NULL) {
+			int match = 0; //does # of chars in input match # of valid int digits?
+			for (int i=0; i<strlen(token); i++) { //checks validity of each character of the input
+				if(i==0 && (isdigit(token[i]) || token[i]=='-')) {
+					match++;
+				}
+				else if(isdigit(token[i])) {
+					match++;
+				}
+			}
+			if (match == strlen(token)) {
+				int i = atoi(token);
+				list_append(i, &current);
+			}
+			if (token[0] == '#') {
+				token = strtok(NULL, "\n");
+			}
+    		}
+    
+    		while(token!=NULL) {
+			token = strtok(NULL," \t\n");
+			if (token!=NULL) {
+				int match = 0; //does # of chars in input match # of valid int digits?
+				for(int i=0; i<strlen(token); i++) { //checks validity of each character of the input
+					if(i==0 && (isdigit(token[i]) || token[i]=='-')) {
+						match++;
+					}
+					else if(isdigit(token[i])) {
+						match++;
+					}
+				}
+				if (match == strlen(token)) {
+					int i = atoi(token);
+				        list_append(i, &current);
+				}
+				if (token[0] == '#') {
+					token = strtok(NULL, "\n");
+				}
+			   
+			}
+    		}
+	}
+    }
+   	list_sort(&current);
+   	list_print(current);
+
+	struct rusage usage;
+	int who = RUSAGE_SELF;
+
+	getrusage(who, &usage);
+	if (getrusage(who, &usage) == -1) {
+		fprintf(stderr, "getrusage error");
+		exit(1);
+	}
+	printf("User time: %ld.%08lds\n", usage.ru_utime.tv_sec, usage.ru_utime.tv_usec);
+	printf("System time: %ld.%08lds\n", usage.ru_stime.tv_sec, usage.ru_stime.tv_usec);
+	
+	list_clear(current);
+	free(current);	
 }
 
 
 void usage(char *program) {
-    fprintf(stderr, "usage: %s [<datafile>]\n", program);
-    exit(1);
+	fprintf(stderr, "usage: %s [<datafile>]\n", program);
+    	exit(1);
 }
 
 #ifndef AUTOTEST
